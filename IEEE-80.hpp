@@ -49,19 +49,20 @@ struct Dados {
     double nCondComp                 = comprimentoMetros / distanciaCondutoresMetros;
 };
 
+
 void resAparente(const Dados &, double &, double &,
                  double &);  // Resistencia aparente da malha
-
-double fatorCorrecaoCs(const Dados &);         // Pagina 23 - EQ 27 - IEEE Std 80-2013
-double tensaoPasso50kg(const Dados &);         // Pagina 28 - EQ 29 - IEEE Std 80-2013
-double tensaoToque50kg(const Dados &);         // Pagina 29 - EQ 32 - IEEE Std 80-2013
-double secaoCabo(const Dados &);               // Pagina 42 - EQ 37 - IEEE Std 80-2013
-double resistenciaAterramento(const Dados &);  // Pagina 67 - EQ 57 - IEEE Std 80-2013
-double tensaoToqueMalha(const Dados &);        // Pagina 94 - EQ 85 - IEEE Std 80-2013
-double fatorKm(const Dados &);                 // Pagina 94 - EQ 86 - IEEE Std 80-2013
-double fatorKi(const Dados &);                 // Pagina 95 - EQ 94 - IEEE Std 80-2013
-double tensaoPassoMalha(const Dados &);        // Pagina 96 - EQ 97 - IEEE Std 80-2013
-double fatorKs(const Dados &);                 // Pagina 96 - EQ 99 - IEEE Std 80-2013
+                                                // From IEEE Std 80-2013
+double fatorCorrecaoCs(const Dados &);          // Page 23 - EQ 27
+double tensaoPasso50kg(const Dados &);          // Page 28 - EQ 29
+double tensaoToque50kg(const Dados &);          // Page 29 - EQ 32
+double secaoCabo(const Dados &);                // Page 42 - EQ 37
+double resistenciaAterramento(const Dados &);   // Page 67 - EQ 57
+double tensaoToqueMalha(const Dados &);         // Page 94 - EQ 85
+double fatorKm(const Dados &);                  // Page 94 - EQ 86
+double fatorKi(const Dados &);                  // Page 95 - EQ 94
+double tensaoPassoMalha(const Dados &);         // Page 96 - EQ 97
+double fatorKs(const Dados &);                  // Page 96 - EQ 99
 
 double diametroCabo(const Dados &);
 double calculaMalha(const Dados &);

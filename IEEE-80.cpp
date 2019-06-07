@@ -1,15 +1,13 @@
 #include <algorithm>  // find, max
-#include <cmath>
 #include <iostream>
 #include <vector>
 
-#include <boost/math/constants/constants.hpp>  // pi
+#include <boost/math/constants/constants.hpp> 
 
 #include "IEEE-80.hpp"
 
 using namespace std;
 
-// Membros privados da funcao
 
 struct structSolo {
     string tipo;
@@ -50,24 +48,24 @@ void ieee80::resAparente(const Dados &data, double &alpha, double &beta,
     rhoa  = data.N * data.rho1Ohm;
 }
 
-// Pagina 23 - EQ 27 - IEEE Std 80-2013
-// Fator de correcao
+// Page 23 - EQ 27 - IEEE Std 80-2013
+// Correction factor
 double ieee80::fatorCorrecaoCs(const Dados &data)
 {
     return (1 - ((0.09 * (1 - (data.rho2Ohm / data.rho1Ohm))) /
                  (2 * data.alturaMalhaMetros + 0.09)));
 }
 
-// Pagina 28 - EQ 29 - IEEE Std 80-2013
-// Tensao de passo para uma pessoa de 50kg
+// Page 28 - EQ 29 - IEEE Std 80-2013
+// 8.4 Step and touch voltage criteria 
 double ieee80::tensaoPasso50kg(const Dados &data)
 {
     return ((1000 + 6 * fatorCorrecaoCs(data) * Solo[data.solo].resistividade) *
             (0.116 / sqrt(data.tempoDeCurtoSegundos)));
 }
 
-// Pagina 29 - EQ 32 - IEEE Std 80-2013
-// Tensao de toque para uma pessoa de 50kg
+// Page 29 - EQ 32 - IEEE Std 80-2013
+// 8.4 Step and touch voltage criteria
 double ieee80::tensaoToque50kg(const Dados &data)
 {
     return (
@@ -75,14 +73,15 @@ double ieee80::tensaoToque50kg(const Dados &data)
         (0.116 / sqrt(data.tempoDeCurtoSegundos)));
 }
 
-//    Pagina 42 - EQ 37 - IEEE Std 80-2013
-//    TCAP = is the thermal capacity per unit volume from Table 1, in J/(cm3·°C)
-//    (further defined in 11.3.1.1) (vem da tabela dos condutores) Ar = is the
-//    thermal coefficient of resistivity at reference temperature Tr in 1/°C
-//    (vem da tabela dos condutores) Pr = is the resistivity of the ground
-//    conductor at reference temperature Tr in µΩ-cm K0 = 1/a0 or (1/ar) – Tr in
-//    ºC Tm = is the maximum allowable temperature in °C Ta = is the ambient
-//    temperature in °C
+//  Pagina 42 - EQ 37 - IEEE Std 80-2013
+//  11.3.1 Symmetrical currents
+//  TCAP = is the thermal capacity per unit volume from Table 1, in J/(cm3·°C)
+//  (further defined in 11.3.1.1) (vem da tabela dos condutores) Ar = is the
+//  thermal coefficient of resistivity at reference temperature Tr in 1/°C
+//  (vem da tabela dos condutores) Pr = is the resistivity of the ground
+//  conductor at reference temperature Tr in µΩ-cm K0 = 1/a0 or (1/ar) – Tr in
+//  ºC Tm = is the maximum allowable temperature in °C Ta = is the ambient
+//  temperature in °C
 double ieee80::secaoCabo(const Dados &data)
 {
     double T0, T1;
@@ -94,11 +93,10 @@ double ieee80::secaoCabo(const Dados &data)
 
     return (data.correnteMalhaAmperes * (197.4 / sqrt(T0 * log(T1)))) *
            0.000506707;
-    // diametro =  (2 * sqrt(secao / M_PI) * 0.001);
 }
 
-// Pagina 67 - EQ 57 - IEEE Std 80-2013
-// Resistencia do aterramento
+// Page 67 - EQ 57 - IEEE Std 80-2013
+// Ground resistance
 // Rgm = Rg(p2, Lt, area, Hmalha)
 double ieee80::resistenciaAterramento(const Dados &data)
 {
@@ -121,11 +119,12 @@ double ieee80::resistenciaAterramento(const Dados &data)
     return (data.rho2Ohm * ((1 / compmalha) + (eq1) * (1 + (eq2))));
 }
 
-// Pagina 94 - EQ 85 - IEEE Std 80-2013
+// Page 94 - EQ 85 - IEEE Std 80-2013
+// 16.5.1 Mesh voltage
 double ieee80::tensaoToqueMalha(const Dados &data)
 {
     double temp;
-    Dados temp2 = data;  // modificador
+    Dados temp2 = data; 
 
     temp = (data.rho2Ohm * data.correnteMalhaAmperes * fatorKm(data) *
             fatorKi(data)) /
@@ -134,8 +133,9 @@ double ieee80::tensaoToqueMalha(const Dados &data)
     return temp;
 }
 
-// Pagina 94 - EQ 86 - IEEE Std 80-2013
-// Fator geometrico Km
+// Page 94 - EQ 86 - IEEE Std 80-2013
+// 16.5.1 Mesh voltage
+// The geometrical factor Km
 // Km(DistCond, Hmalha, 1, DiametroCabo, NDmalha)
 double ieee80::fatorKm(const Dados &data)
 {
@@ -164,14 +164,16 @@ double ieee80::fatorKm(const Dados &data)
     return (T0 * (log(T1 + T2 - T3) + T4 * log(T5)));
 }
 
-// Pagina 95 - EQ 94 - IEEE Std 80-2013
-// Fator de irregularidade Ki
+// Page 95 - EQ 94 - IEEE Std 80-2013
+// 16.5.1 Mesh voltage
+// The irregularity factor Ki
 double ieee80::fatorKi(const Dados &data)
 {
     return 0.644 + 0.148 * sqrt(data.nCondLarg * data.nCondComp);
 }
 
-// Pagina 96 - EQ 97 - IEEE Std 80-2013
+// Page 96 - EQ 97 - IEEE Std 80-2013
+// 16.5.2 Step voltage
 // Epm(p2, Imalha, Ks1, Ki1, Lt)
 double ieee80::tensaoPassoMalha(const Dados &data)
 {
@@ -186,7 +188,8 @@ double ieee80::tensaoPassoMalha(const Dados &data)
     return temp;
 }
 
-// Pagina 96 - EQ 99 - IEEE Std 80-2013
+// Page 96 - EQ 99 - IEEE Std 80-2013
+// 16.5.2 Step voltage
 // Fator de espacamento
 double ieee80::fatorKs(const Dados &data)
 {
@@ -201,23 +204,23 @@ double ieee80::fatorKs(const Dados &data)
     return (p1 + p2 + p3);
 }
 
-//-------------- Parte 2 ----------------------//
+//-------------- Second part ----------------------//
 
 double ieee80::diametroCabo(const Dados &data)
 {
     return (2 * sqrt(secaoCabo(data) / M_PI) * 0.001);  // metros
 }
 
-// Pagina 92 - Figure 32 —Design procedure block diagram - IEEE Std 80-2013
-// Nessa aqui foi modificado o algoritmo para retornar o total de cabos
-// utilizados para atingir um determinado valor de resistencia de aterramento
+// Page 92 - Figure 32 —Design procedure block diagram - IEEE Std 80-2013
+// In this one the algorithm was modified to return the total of cables
+// used to achieve a particular ground resistance value
 
 // CalculaLTmax(RMinmalha, rho2, areaMalha, Hmalha)
 double ieee80::calculaMalha(const Dados &data)
 {
 
-    // Calcular o comprimento maximo da malha para a resistencia
-    // especificada
+    // Calculate the maximum mesh length for the resistance
+    // specified
     Dados data2 = data;
 
     data2.comprimentoMetros = 1.0;
@@ -244,7 +247,7 @@ double ieee80::calculaMalha(const Dados &data)
 double ieee80::compTotalCondutores(const Dados &data)
 {
     double Lt;
-    Lt = calculaMalha(data);  // total de cabos
+    Lt = calculaMalha(data);  // total cables
     Lt += data.hastes * 3;
 
     return Lt;

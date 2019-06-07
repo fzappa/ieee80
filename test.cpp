@@ -1,6 +1,5 @@
 #include <iostream>
 #include<stdlib.h>
-//#include <cmath>
 #include "IEEE-80.hpp"
 
 using namespace std;
