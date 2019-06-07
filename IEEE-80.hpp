@@ -50,23 +50,23 @@ struct Dados {
 };
 
 
-void resAparente(const Dados &, double &, double &,
+void aparentResistivity(const Dados &, double &, double &,
                  double &);  // Resistencia aparente da malha
                                                 // From IEEE Std 80-2013
-double fatorCorrecaoCs(const Dados &);          // Page 23 - EQ 27
-double tensaoPasso50kg(const Dados &);          // Page 28 - EQ 29
-double tensaoToque50kg(const Dados &);          // Page 29 - EQ 32
-double secaoCabo(const Dados &);                // Page 42 - EQ 37
-double resistenciaAterramento(const Dados &);   // Page 67 - EQ 57
-double tensaoToqueMalha(const Dados &);         // Page 94 - EQ 85
-double fatorKm(const Dados &);                  // Page 94 - EQ 86
-double fatorKi(const Dados &);                  // Page 95 - EQ 94
-double tensaoPassoMalha(const Dados &);         // Page 96 - EQ 97
-double fatorKs(const Dados &);                  // Page 96 - EQ 99
+double csCorrectionFactor(const Dados &);          // Page 23 - EQ 27
+double stepVoltage50kg(const Dados &);          // Page 28 - EQ 29
+double touchVoltage50kg(const Dados &);          // Page 29 - EQ 32
+double cableSection(const Dados &);                // Page 42 - EQ 37
+double groundResistance(const Dados &);   // Page 67 - EQ 57
+double touchVoltageMesh(const Dados &);         // Page 94 - EQ 85
+double kmFactor(const Dados &);                  // Page 94 - EQ 86
+double kiFactor(const Dados &);                  // Page 95 - EQ 94
+double stepVoltageMesh(const Dados &);         // Page 96 - EQ 97
+double ksFactor(const Dados &);                  // Page 96 - EQ 99
 
-double diametroCabo(const Dados &);
-double calculaMalha(const Dados &);
-double compTotalCondutores(const Dados &);
+double cableDiameter(const Dados &);
+double meshCalc(const Dados &);
+double overallConductorLenght(const Dados &);
 
 double GPR(const Dados &);
 

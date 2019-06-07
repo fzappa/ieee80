@@ -6,28 +6,27 @@
 
 #include "IEEE-80.hpp"
 
-using namespace std;
 
-
-struct structSolo {
-    string tipo;
-    double resistividade;
+struct structSoil {
+    std::string type;
+    double resistivity;
 };
 
-static const vector<structSolo> Solo{
-    {"Pantano", 50.0},	 {"Lodol", 100.0},	   {"Humus", 150.0},
+//typical values of resistivity
+static const std::vector<structSoil> Soil{
+    {"Pantano", 50.0},	 {"Lodo", 100.0},	   {"Humus", 150.0},
     {"Areia Argilosa", 200.0}, {"Areia Silicosa", 1000.0}, {"Brita", 3000.0},
     {"Calcareo", 5000.0},      {"Granito", 10000.0},       {"NaoDef", 3000.0}};
 
-struct structCabo {
-    string tipo;
+struct structCable {
+    std::string type;
     double Ar;
     double K0;
     double Pr;
     double TCAP;
 };
 
-static const vector<structCabo> Cabo{
+static const std::vector<structCable> Cable{
     {"Cobre mole", 0.00393, 234, 1.72, 3.4},
     {"Cobre comercial", 0.00381, 242, 1.78, 3.4},
     {"Cobre com alma de aço", 0.00378, 245, 10.1, 3.8},
@@ -37,8 +36,8 @@ static const vector<structCabo> Cabo{
     {"Zinco", 0.0032, 293, 20.1, 3.9},
     {"Aço inoxidável 304", 0.0013, 749, 72.0, 4.0}};
 
-// ResAparente(area, p1, d1, p2, N, alpha, beta, rhoa)
-void ieee80::resAparente(const Dados &data, double &alpha, double &beta,
+// aparentResistivity(area, p1, d1, p2, N, alpha, beta, rhoa)
+void ieee80::aparentResistivity(const Dados &data, double &alpha, double &beta,
                          double &rhoa)
 {
     double r;
@@ -50,7 +49,7 @@ void ieee80::resAparente(const Dados &data, double &alpha, double &beta,
 
 // Page 23 - EQ 27 - IEEE Std 80-2013
 // Correction factor
-double ieee80::fatorCorrecaoCs(const Dados &data)
+double ieee80::csCorrectionFactor(const Dados &data)
 {
     return (1 - ((0.09 * (1 - (data.rho2Ohm / data.rho1Ohm))) /
                  (2 * data.alturaMalhaMetros + 0.09)));
@@ -58,18 +57,18 @@ double ieee80::fatorCorrecaoCs(const Dados &data)
 
 // Page 28 - EQ 29 - IEEE Std 80-2013
 // 8.4 Step and touch voltage criteria 
-double ieee80::tensaoPasso50kg(const Dados &data)
+double ieee80::stepVoltage50kg(const Dados &data)
 {
-    return ((1000 + 6 * fatorCorrecaoCs(data) * Solo[data.solo].resistividade) *
+    return ((1000 + 6 * csCorrectionFactor(data) * Soil[data.solo].resistivity) *
             (0.116 / sqrt(data.tempoDeCurtoSegundos)));
 }
 
 // Page 29 - EQ 32 - IEEE Std 80-2013
 // 8.4 Step and touch voltage criteria
-double ieee80::tensaoToque50kg(const Dados &data)
+double ieee80::touchVoltage50kg(const Dados &data)
 {
     return (
-        (1000 + 1.5 * fatorCorrecaoCs(data) * Solo[data.solo].resistividade) *
+        (1000 + 1.5 * csCorrectionFactor(data) * Soil[data.solo].resistivity) *
         (0.116 / sqrt(data.tempoDeCurtoSegundos)));
 }
 
@@ -82,14 +81,14 @@ double ieee80::tensaoToque50kg(const Dados &data)
 //  conductor at reference temperature Tr in µΩ-cm K0 = 1/a0 or (1/ar) – Tr in
 //  ºC Tm = is the maximum allowable temperature in °C Ta = is the ambient
 //  temperature in °C
-double ieee80::secaoCabo(const Dados &data)
+double ieee80::cableSection(const Dados &data)
 {
     double T0, T1;
 
-    T0 = (Cabo[data.cabo].TCAP) /
-         (data.tempoDeCurtoSegundos * Cabo[data.cabo].Ar * Cabo[data.cabo].Pr);
-    T1 = (Cabo[data.cabo].K0 + data.tempMaxMalha) /
-         (Cabo[data.cabo].K0 + data.tempAmbienteCelsius);
+    T0 = (Cable[data.cabo].TCAP) /
+         (data.tempoDeCurtoSegundos * Cable[data.cabo].Ar * Cable[data.cabo].Pr);
+    T1 = (Cable[data.cabo].K0 + data.tempMaxMalha) /
+         (Cable[data.cabo].K0 + data.tempAmbienteCelsius);
 
     return (data.correnteMalhaAmperes * (197.4 / sqrt(T0 * log(T1)))) *
            0.000506707;
@@ -98,7 +97,7 @@ double ieee80::secaoCabo(const Dados &data)
 // Page 67 - EQ 57 - IEEE Std 80-2013
 // Ground resistance
 // Rgm = Rg(p2, Lt, area, Hmalha)
-double ieee80::resistenciaAterramento(const Dados &data)
+double ieee80::groundResistance(const Dados &data)
 {
     double eq1, eq2, compmalha;
 
@@ -121,14 +120,14 @@ double ieee80::resistenciaAterramento(const Dados &data)
 
 // Page 94 - EQ 85 - IEEE Std 80-2013
 // 16.5.1 Mesh voltage
-double ieee80::tensaoToqueMalha(const Dados &data)
+double ieee80::touchVoltageMesh(const Dados &data)
 {
     double temp;
     Dados temp2 = data; 
 
-    temp = (data.rho2Ohm * data.correnteMalhaAmperes * fatorKm(data) *
-            fatorKi(data)) /
-           compTotalCondutores(temp2);
+    temp = (data.rho2Ohm * data.correnteMalhaAmperes * kmFactor(data) *
+            kiFactor(data)) /
+           overallConductorLenght(temp2);
 
     return temp;
 }
@@ -136,15 +135,15 @@ double ieee80::tensaoToqueMalha(const Dados &data)
 // Page 94 - EQ 86 - IEEE Std 80-2013
 // 16.5.1 Mesh voltage
 // The geometrical factor Km
-// Km(DistCond, Hmalha, 1, DiametroCabo, NDmalha)
-double ieee80::fatorKm(const Dados &data)
+// Km(DistCond, Hmalha, 1, cableDiameter, NDmalha)
+double ieee80::kmFactor(const Dados &data)
 {
     double Kii, Kh, n;
     double T0, T1, T2, T3, T4, T5;
     double profundidadeMalha = 1.0;  // Referencia da norma
-    double dCabo	     = diametroCabo(data);
+    double dCabo	     = cableDiameter(data);
 
-    n = max(data.nCondComp, data.nCondLarg);
+    n = std::max(data.nCondComp, data.nCondLarg);
 
     Kii = pow(2.0 * n, (-2.0 / n));
     Kh  = sqrt(1 + (data.alturaMalhaMetros / profundidadeMalha));
@@ -167,7 +166,7 @@ double ieee80::fatorKm(const Dados &data)
 // Page 95 - EQ 94 - IEEE Std 80-2013
 // 16.5.1 Mesh voltage
 // The irregularity factor Ki
-double ieee80::fatorKi(const Dados &data)
+double ieee80::kiFactor(const Dados &data)
 {
     return 0.644 + 0.148 * sqrt(data.nCondLarg * data.nCondComp);
 }
@@ -175,15 +174,15 @@ double ieee80::fatorKi(const Dados &data)
 // Page 96 - EQ 97 - IEEE Std 80-2013
 // 16.5.2 Step voltage
 // Epm(p2, Imalha, Ks1, Ki1, Lt)
-double ieee80::tensaoPassoMalha(const Dados &data)
+double ieee80::stepVoltageMesh(const Dados &data)
 {
 
     double temp;
     Dados temp2 = data;
 
-    temp = (data.rho2Ohm * data.correnteMalhaAmperes * fatorKs(data) *
-            fatorKi(data)) /
-           compTotalCondutores(temp2);
+    temp = (data.rho2Ohm * data.correnteMalhaAmperes * ksFactor(data) *
+            kiFactor(data)) /
+           overallConductorLenght(temp2);
 
     return temp;
 }
@@ -191,11 +190,11 @@ double ieee80::tensaoPassoMalha(const Dados &data)
 // Page 96 - EQ 99 - IEEE Std 80-2013
 // 16.5.2 Step voltage
 // Fator de espacamento
-double ieee80::fatorKs(const Dados &data)
+double ieee80::ksFactor(const Dados &data)
 {
     double n;
     double p1, p2, p3;
-    n = max(data.nCondComp, data.nCondLarg);
+    n = std::max(data.nCondComp, data.nCondLarg);
 
     p1 = (1 / M_PI) * (1.0 / (2 * data.alturaMalhaMetros));
     p2 = (1.0 / (data.distanciaCondutoresMetros + data.alturaMalhaMetros));
@@ -206,9 +205,9 @@ double ieee80::fatorKs(const Dados &data)
 
 //-------------- Second part ----------------------//
 
-double ieee80::diametroCabo(const Dados &data)
+double ieee80::cableDiameter(const Dados &data)
 {
-    return (2 * sqrt(secaoCabo(data) / M_PI) * 0.001);  // metros
+    return (2 * sqrt(cableSection(data) / M_PI) * 0.001);  // metros
 }
 
 // Page 92 - Figure 32 —Design procedure block diagram - IEEE Std 80-2013
@@ -216,7 +215,7 @@ double ieee80::diametroCabo(const Dados &data)
 // used to achieve a particular ground resistance value
 
 // CalculaLTmax(RMinmalha, rho2, areaMalha, Hmalha)
-double ieee80::calculaMalha(const Dados &data)
+double ieee80::meshCalc(const Dados &data)
 {
 
     // Calculate the maximum mesh length for the resistance
@@ -226,34 +225,35 @@ double ieee80::calculaMalha(const Dados &data)
     data2.comprimentoMetros = 1.0;
     data2.larguraMetros     = 1.0;
 
-    double resMax = resistenciaAterramento(data2);
+    double resMax = groundResistance(data2);
 
     while (resMax > data.resistenciaMinMalhaOhms) {
         data2.comprimentoMetros += 1.0;
         data2.larguraMetros += 1.0;
 
         if (data2.comprimentoMetros > 1000000.0) {
-            cout << "Não é possivel dimensionar a malha" << endl;
+            std::cout << "Não é possivel dimensionar a malha" << std::endl;
             break;
         }
         else {
-            resMax = resistenciaAterramento(data2);
+            resMax = groundResistance(data2);
         }
     }
 
     return data2.comprimentoMetros;
 }
 
-double ieee80::compTotalCondutores(const Dados &data)
+double ieee80::overallConductorLenght(const Dados &data)
 {
     double Lt;
-    Lt = calculaMalha(data);  // total cables
+    Lt = meshCalc(data);  // total cables
     Lt += data.hastes * 3;
 
     return Lt;
 }
 
+// ground potential rise 
 double ieee80::GPR(const Dados &data)
 {
-    return (resistenciaAterramento(data) * data.correnteMalhaAmperes);
+    return (groundResistance(data) * data.correnteMalhaAmperes);
 }
