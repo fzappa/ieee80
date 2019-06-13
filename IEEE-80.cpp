@@ -2,21 +2,20 @@
 #include <iostream>
 #include <vector>
 
-#include <boost/math/constants/constants.hpp> 
+#include <boost/math/constants/constants.hpp>
 
 #include "IEEE-80.hpp"
-
 
 struct structSoil {
     std::string type;
     double resistivity;
 };
 
-//typical values of resistivity
+// typical values of resistivity
 static const std::vector<structSoil> Soil{
-    {"Pantano", 50.0},	 {"Lodo", 100.0},	   {"Humus", 150.0},
-    {"Areia Argilosa", 200.0}, {"Areia Silicosa", 1000.0}, {"Brita", 3000.0},
-    {"Calcareo", 5000.0},      {"Granito", 10000.0},       {"NaoDef", 3000.0}};
+    {"Pantano", 50.0},          {"Lodo", 100.0},   {"Humus", 150.0},     {"Areia Argilosa", 200.0},
+    {"Areia Silicosa", 1000.0}, {"Brita", 3000.0}, {"Calcareo", 5000.0}, {"Granito", 10000.0},
+    {"NaoDef", 3000.0}};
 
 struct structCable {
     std::string type;
@@ -26,19 +25,17 @@ struct structCable {
     double TCAP;
 };
 
-static const std::vector<structCable> Cable{
-    {"Cobre mole", 0.00393, 234, 1.72, 3.4},
-    {"Cobre comercial", 0.00381, 242, 1.78, 3.4},
-    {"Cobre com alma de aço", 0.00378, 245, 10.1, 3.8},
-    {"Alumínio com alma de aço", 0.0036, 258, 8.48, 3.561},
-    {"Aço 1020", 0.00377, 245, 15.9, 3.8},
-    {"Aço inoxidável", 0.00377, 245, 17.5, 4.4},
-    {"Zinco", 0.0032, 293, 20.1, 3.9},
-    {"Aço inoxidável 304", 0.0013, 749, 72.0, 4.0}};
+static const std::vector<structCable> Cable{{"Cobre mole", 0.00393, 234, 1.72, 3.4},
+                                            {"Cobre comercial", 0.00381, 242, 1.78, 3.4},
+                                            {"Cobre com alma de aço", 0.00378, 245, 10.1, 3.8},
+                                            {"Alumínio com alma de aço", 0.0036, 258, 8.48, 3.561},
+                                            {"Aço 1020", 0.00377, 245, 15.9, 3.8},
+                                            {"Aço inoxidável", 0.00377, 245, 17.5, 4.4},
+                                            {"Zinco", 0.0032, 293, 20.1, 3.9},
+                                            {"Aço inoxidável 304", 0.0013, 749, 72.0, 4.0}};
 
 // aparentResistivity(area, p1, d1, p2, N, alpha, beta, rhoa)
-void ieee80::aparentResistivity(const Dados &data, double &alpha, double &beta,
-                         double &rhoa)
+void ieee80::aparentResistivity(const Dados &data, double &alpha, double &beta, double &rhoa)
 {
     double r;
     r     = sqrt((data.larguraMetros * data.comprimentoMetros) / M_PI);
@@ -51,12 +48,12 @@ void ieee80::aparentResistivity(const Dados &data, double &alpha, double &beta,
 // Correction factor
 double ieee80::csCorrectionFactor(const Dados &data)
 {
-    return (1 - ((0.09 * (1 - (data.rho2Ohm / data.rho1Ohm))) /
-                 (2 * data.alturaMalhaMetros + 0.09)));
+    return (1 -
+            ((0.09 * (1 - (data.rho2Ohm / data.rho1Ohm))) / (2 * data.alturaMalhaMetros + 0.09)));
 }
 
 // Page 28 - EQ 29 - IEEE Std 80-2013
-// 8.4 Step and touch voltage criteria 
+// 8.4 Step and touch voltage criteria
 double ieee80::stepVoltage50kg(const Dados &data)
 {
     return ((1000 + 6 * csCorrectionFactor(data) * Soil[data.solo].resistivity) *
@@ -67,9 +64,8 @@ double ieee80::stepVoltage50kg(const Dados &data)
 // 8.4 Step and touch voltage criteria
 double ieee80::touchVoltage50kg(const Dados &data)
 {
-    return (
-        (1000 + 1.5 * csCorrectionFactor(data) * Soil[data.solo].resistivity) *
-        (0.116 / sqrt(data.tempoDeCurtoSegundos)));
+    return ((1000 + 1.5 * csCorrectionFactor(data) * Soil[data.solo].resistivity) *
+            (0.116 / sqrt(data.tempoDeCurtoSegundos)));
 }
 
 //  Pagina 42 - EQ 37 - IEEE Std 80-2013
@@ -90,8 +86,7 @@ double ieee80::cableSection(const Dados &data)
     T1 = (Cable[data.cabo].K0 + data.tempMaxMalha) /
          (Cable[data.cabo].K0 + data.tempAmbienteCelsius);
 
-    return (data.correnteMalhaAmperes * (197.4 / sqrt(T0 * log(T1)))) *
-           0.000506707;
+    return (data.correnteMalhaAmperes * (197.4 / sqrt(T0 * log(T1)))) * 0.000506707;
 }
 
 // Page 67 - EQ 57 - IEEE Std 80-2013
@@ -123,10 +118,9 @@ double ieee80::groundResistance(const Dados &data)
 double ieee80::touchVoltageMesh(const Dados &data)
 {
     double temp;
-    Dados temp2 = data; 
+    Dados temp2 = data;
 
-    temp = (data.rho2Ohm * data.correnteMalhaAmperes * kmFactor(data) *
-            kiFactor(data)) /
+    temp = (data.rho2Ohm * data.correnteMalhaAmperes * kmFactor(data) * kiFactor(data)) /
            overallConductorLenght(temp2);
 
     return temp;
@@ -141,7 +135,7 @@ double ieee80::kmFactor(const Dados &data)
     double Kii, Kh, n;
     double T0, T1, T2, T3, T4, T5;
     double profundidadeMalha = 1.0;  // Referencia da norma
-    double dCabo	     = cableDiameter(data);
+    double dCabo             = cableDiameter(data);
 
     n = std::max(data.nCondComp, data.nCondLarg);
 
@@ -180,8 +174,7 @@ double ieee80::stepVoltageMesh(const Dados &data)
     double temp;
     Dados temp2 = data;
 
-    temp = (data.rho2Ohm * data.correnteMalhaAmperes * ksFactor(data) *
-            kiFactor(data)) /
+    temp = (data.rho2Ohm * data.correnteMalhaAmperes * ksFactor(data) * kiFactor(data)) /
            overallConductorLenght(temp2);
 
     return temp;
@@ -252,7 +245,7 @@ double ieee80::overallConductorLenght(const Dados &data)
     return Lt;
 }
 
-// ground potential rise 
+// ground potential rise
 double ieee80::GPR(const Dados &data)
 {
     return (groundResistance(data) * data.correnteMalhaAmperes);
