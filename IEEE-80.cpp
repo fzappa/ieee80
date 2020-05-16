@@ -80,7 +80,7 @@ double ieee80::touchVoltage50kg(const Data &data) {
             (0.116 / sqrt(data.shortCircuitTimeSeconds)));
 }
 
-//  Pagina 42 - EQ 37 - IEEE Std 80-2013
+//  Page 42 - EQ 37 - IEEE Std 80-2013
 //  11.3.1 Symmetrical currents
 //  TCAP = is the thermal capacity per unit volume from Table 1, in J/(cm3·°C)
 //  (further defined in 11.3.1.1) (comes from the table of conductors) Ar = is the
