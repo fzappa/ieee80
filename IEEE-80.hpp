@@ -1,8 +1,8 @@
 //**********************************************
-//  Library for calculating grounding parameters based on: 
+//  Library for calculating grounding parameters based on:
 // Guide for Safety in AC Substation Grounding - IEEE-80
 //
-//  Implemented for Substation discipline in the 
+//  Implemented for Substation discipline in the
 //  Electrical Engineering course at CEFET / RJ
 //
 //
@@ -43,29 +43,29 @@ enum enumCable {
 // Two-layer stratified soil model
 struct Data {
     double widthMeters             = 70.0;
-    double lengthMeters         = 70.0;
-    double rho1Ohm                   = 2500.0;  // layer 1 resistivity
-    double rho2Ohm                   = 400.0;   // layer 2 resistivity
-    double chainMeshAmperes      = 1200.0;
+    double lengthMeters            = 70.0;
+    double rho1Ohm                 = 2500.0;  // layer 1 resistivity
+    double rho2Ohm                 = 400.0;   // layer 2 resistivity
+    double chainMeshAmperes        = 1200.0;
     unsigned int rods              = 10;
     double resistanceMinMeshOhms   = 2.78;
-    double ambientTempCelsius       = 40.0;
+    double ambientTempCelsius      = 40.0;
     double diameterMeshD1Meter     = 0.102;
-    double N                         = 0.67;
-    double shortCircuitTimeSeconds      = 0.5;
-    double heightMeshMeters         = 0.5;
+    double N                       = 0.67;
+    double shortCircuitTimeSeconds = 0.5;
+    double heightMeshMeters        = 0.5;
     double spacingConductorsMeters = 7.0;
-    double maximumMeshTemperature              = 850.0;
-    unsigned int soil                = CrushedStone;
-    unsigned int cable                = CopperComercial;
-    double area                      = widthMeters * lengthMeters;
-    double numberConductorsWidth                 = widthMeters / spacingConductorsMeters;
-    double numberConductorsLength                 = lengthMeters / spacingConductorsMeters;
+    double maximumMeshTemperature  = 850.0;
+    unsigned int soil              = CrushedStone;
+    unsigned int cable             = CopperComercial;
+    double area                    = widthMeters * lengthMeters;
+    double numberConductorsWidth   = widthMeters / spacingConductorsMeters;
+    double numberConductorsLength  = lengthMeters / spacingConductorsMeters;
 };
 
-void aparentResistivity(const Data&, double&, double&,
-                        double&);         // Apparent mesh resistivity
-                                           // From IEEE Std 80-2013
+void aparentResistivity(const Data &, double &, double &,
+                        double &);        // Apparent mesh resistivity
+                                          // From IEEE Std 80-2013
 double csCorrectionFactor(const Data &);  // Page 23 - EQ 27
 double stepVoltage50kg(const Data &);     // Page 28 - EQ 29
 double touchVoltage50kg(const Data &);    // Page 29 - EQ 32

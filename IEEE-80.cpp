@@ -1,8 +1,8 @@
 //**********************************************
-//  Library for calculating grounding parameters based on: 
+//  Library for calculating grounding parameters based on:
 // Guide for Safety in AC Substation Grounding - IEEE-80
 //
-//  Implemented for Substation discipline in the 
+//  Implemented for Substation discipline in the
 //  Electrical Engineering course at CEFET / RJ
 //
 //
@@ -11,13 +11,13 @@
 //  Rev.: 05/03/2016 (PT_BR)
 //*********************************************
 
-#include <algorithm>  // find, max
-#include <iostream>
-#include <vector>
+#include "IEEE-80.hpp"
 
 #include <boost/math/constants/constants.hpp>
 
-#include "IEEE-80.hpp"
+#include <algorithm>  // find, max
+#include <iostream>
+#include <vector>
 
 struct structSoil {
     std::string type;
@@ -25,22 +25,22 @@ struct structSoil {
 };
 
 // typical values of resistivity of some types of soil
-static const std::vector<structSoil> Soil{ 
-    {"Pantano", 50.0}, {"Sludge", 100.0}, {"Humus", 150.0}, {"Clay Sand", 200.0}, 
-    {"Siliceous Sand", 1000.0}, {"Crushed Stone", 3000.0}, {"Limestone", 5000.0}, {"Granite", 10000.0},
-    {"Default", 3000.0}};
+static const std::vector<structSoil> Soil{
+    {"Pantano", 50.0}, {"Sludge", 100.0}, {"Humus", 150.0}, {"Clay Sand", 200.0},
+    {"Siliceous Sand", 1000.0}, {"Crushed Stone", 3000.0}, {"Limestone", 5000.0},
+    {"Granite", 10000.0}, {"Default", 3000.0}};
 
 // Page 42 - EQ 37 - IEEE Std 80-2013
 struct structCable {
     std::string type;
-    double Ar;     // Thermal coefficient of resistivity 
-    double K0;     // Thermal capacity per unit volume
-    double Pr;     // Resistivity of the ground
-    double TCAP;   // Thermal capacity per unit volume 
+    double Ar;    // Thermal coefficient of resistivity
+    double K0;    // Thermal capacity per unit volume
+    double Pr;    // Resistivity of the ground
+    double TCAP;  // Thermal capacity per unit volume
 };
 
 // Types os conductor cables - Page 46 - Table 1 - IEEE Std 80-2013
-// Description, alpha_r factor, K0, Resistivity, Thermal Capacity 
+// Description, alpha_r factor, K0, Resistivity, Thermal Capacity
 static const std::vector<structCable> Cable{{"Copper, annealed soft-drawn", 0.00393, 234, 1.72, 3.4},
                                             {"Copper, commercial hard-drawn", 0.00381, 242, 1.78, 3.4},
                                             {"Copper-clad steel wire", 0.00378, 245, 10.1, 3.8},
@@ -51,8 +51,7 @@ static const std::vector<structCable> Cable{{"Copper, annealed soft-drawn", 0.00
                                             {"Stainless steel, 304", 0.0013, 749, 72.0, 4.0}};
 
 // aparentResistivity(area, p1, d1, p2, N, alpha, beta, rhoa)
-void ieee80::aparentResistivity(const Data &data, double &alpha, double &beta, double &rhoa)
-{
+void ieee80::aparentResistivity(const Data &data, double &alpha, double &beta, double &rhoa) {
     double r;
     r     = sqrt((data.widthMeters * data.lengthMeters) / M_PI);
     alpha = r / data.diameterMeshD1Meter;
@@ -62,24 +61,21 @@ void ieee80::aparentResistivity(const Data &data, double &alpha, double &beta, d
 
 // Page 23 - EQ 27 - IEEE Std 80-2013
 // Correction factor
-double ieee80::csCorrectionFactor(const Data &data)
-{
+double ieee80::csCorrectionFactor(const Data &data) {
     return (1 -
             ((0.09 * (1 - (data.rho2Ohm / data.rho1Ohm))) / (2 * data.heightMeshMeters + 0.09)));
 }
 
 // Page 28 - EQ 29 - IEEE Std 80-2013
 // 8.4 Step and touch voltage criteria
-double ieee80::stepVoltage50kg(const Data &data)
-{
+double ieee80::stepVoltage50kg(const Data &data) {
     return ((1000 + 6 * csCorrectionFactor(data) * Soil[data.soil].resistivity) *
             (0.116 / sqrt(data.shortCircuitTimeSeconds)));
 }
 
 // Page 29 - EQ 32 - IEEE Std 80-2013
 // 8.4 Step and touch voltage criteria
-double ieee80::touchVoltage50kg(const Data &data)
-{
+double ieee80::touchVoltage50kg(const Data &data) {
     return ((1000 + 1.5 * csCorrectionFactor(data) * Soil[data.soil].resistivity) *
             (0.116 / sqrt(data.shortCircuitTimeSeconds)));
 }
@@ -93,8 +89,7 @@ double ieee80::touchVoltage50kg(const Data &data)
 //  conductor at reference temperature Tr in µΩ-cm K0 = 1/a0 or (1/ar) – Tr in
 //  ºC Tm = is the maximum allowable temperature in °C Ta = is the ambient
 //  temperature in °C
-double ieee80::cableSection(const Data &data)
-{
+double ieee80::cableSection(const Data &data) {
     double T0, T1;
 
     T0 = (Cable[data.cable].TCAP) /
@@ -108,8 +103,7 @@ double ieee80::cableSection(const Data &data)
 // Page 67 - EQ 57 - IEEE Std 80-2013
 // Ground resistance
 // Rgm = Rg(p2, Lt, area, Hmalha)
-double ieee80::groundResistance(const Data &data)
-{
+double ieee80::groundResistance(const Data &data) {
     double eq1, eq2, compmalha;
 
     eq1 = (1.0 / sqrt(20.0 * data.area));
@@ -131,8 +125,7 @@ double ieee80::groundResistance(const Data &data)
 
 // Page 94 - EQ 85 - IEEE Std 80-2013
 // 16.5.1 Mesh voltage
-double ieee80::touchVoltageMesh(const Data &data)
-{
+double ieee80::touchVoltageMesh(const Data &data) {
     double temp;
     Data temp2 = data;
 
@@ -146,12 +139,11 @@ double ieee80::touchVoltageMesh(const Data &data)
 // 16.5.1 Mesh voltage
 // The geometrical factor Km
 // Km(DistCond, Hmalha, 1, cableDiameter, NDmalha)
-double ieee80::kmFactor(const Data &data)
-{
+double ieee80::kmFactor(const Data &data) {
     double Kii, Kh, n;
     double T0, T1, T2, T3, T4, T5;
     double profundidadeMalha = 1.0;  // Standard reference
-    double dCable             = cableDiameter(data);
+    double dCable            = cableDiameter(data);
 
     n = std::max(data.numberConductorsLength, data.numberConductorsWidth);
 
@@ -176,16 +168,14 @@ double ieee80::kmFactor(const Data &data)
 // Page 95 - EQ 94 - IEEE Std 80-2013
 // 16.5.1 Mesh voltage
 // The irregularity factor Ki
-double ieee80::kiFactor(const Data &data)
-{
+double ieee80::kiFactor(const Data &data) {
     return 0.644 + 0.148 * sqrt(data.numberConductorsWidth * data.numberConductorsLength);
 }
 
 // Page 96 - EQ 97 - IEEE Std 80-2013
 // 16.5.2 Step voltage
 // Epm(p2, Imalha, Ks1, Ki1, Lt)
-double ieee80::stepVoltageMesh(const Data &data)
-{
+double ieee80::stepVoltageMesh(const Data &data) {
 
     double temp;
     Data temp2 = data;
@@ -199,8 +189,7 @@ double ieee80::stepVoltageMesh(const Data &data)
 // Page 96 - EQ 99 - IEEE Std 80-2013
 // 16.5.2 Step voltage
 // Spacing factor
-double ieee80::ksFactor(const Data &data)
-{
+double ieee80::ksFactor(const Data &data) {
     double n;
     double p1, p2, p3;
     n = std::max(data.numberConductorsLength, data.numberConductorsWidth);
@@ -214,24 +203,22 @@ double ieee80::ksFactor(const Data &data)
 
 //-------------- Second part ----------------------//
 
-double ieee80::cableDiameter(const Data &data)
-{
+double ieee80::cableDiameter(const Data &data) {
     return (2 * sqrt(cableSection(data) / M_PI) * 0.001);  // metros
 }
 
 // Page 92 - Figure 32 —Design procedure block diagram - IEEE Std 80-2013
-// The algorithm here has been modified to return the total length 
+// The algorithm here has been modified to return the total length
 // of cables used to achieve a particular ground resistance value
 //
-double ieee80::meshCalc(const Data &data)
-{
+double ieee80::meshCalc(const Data &data) {
 
     // Calculate the maximum mesh length for the resistance
     // specified
     Data data2 = data;
 
     data2.lengthMeters = 1.0;
-    data2.widthMeters     = 1.0;
+    data2.widthMeters  = 1.0;
 
     double resMax = groundResistance(data2);
 
@@ -243,8 +230,7 @@ double ieee80::meshCalc(const Data &data)
         if (data2.lengthMeters > 1000000.0) {
             std::cout << "It is not possible to dimension the mesh" << std::endl;
             break;
-        }
-        else {
+        } else {
             resMax = groundResistance(data2);
         }
     }
@@ -252,8 +238,7 @@ double ieee80::meshCalc(const Data &data)
     return data2.lengthMeters;
 }
 
-double ieee80::overallConductorLenght(const Data &data)
-{
+double ieee80::overallConductorLenght(const Data &data) {
     double Lt;
     Lt = meshCalc(data);  // total cables
     Lt += data.rods * 3;
@@ -263,8 +248,7 @@ double ieee80::overallConductorLenght(const Data &data)
 
 // Ground Potential Rise
 // The maximum electrical potential that a ground electrode may attain relative
-// to a distant grounding point assumed to be at the potential of remote earth. 
-double ieee80::GPR(const Data &data)
-{
+// to a distant grounding point assumed to be at the potential of remote earth.
+double ieee80::GPR(const Data &data) {
     return (groundResistance(data) * data.chainMeshAmperes);
 }
