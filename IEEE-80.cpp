@@ -97,7 +97,7 @@ double ieee80::cableSection(const Data &data) {
     T1 = (Cable[data.cable].K0 + data.maximumMeshTemperature) /
          (Cable[data.cable].K0 + data.ambientTempCelsius);
 
-    return (data.chainMeshAmperes * (197.4 / sqrt(T0 * log(T1)))) * 0.000506707;
+    return (data.currentMeshAmperes * (197.4 / sqrt(T0 * log(T1)))) * 0.000506707;
 }
 
 // Page 67 - EQ 57 - IEEE Std 80-2013
@@ -129,7 +129,7 @@ double ieee80::touchVoltageMesh(const Data &data) {
     double temp;
     Data temp2 = data;
 
-    temp = (data.rho2Ohm * data.chainMeshAmperes * kmFactor(data) * kiFactor(data)) /
+    temp = (data.rho2Ohm * data.currentMeshAmperes * kmFactor(data) * kiFactor(data)) /
            overallConductorLenght(temp2);
 
     return temp;
@@ -180,7 +180,7 @@ double ieee80::stepVoltageMesh(const Data &data) {
     double temp;
     Data temp2 = data;
 
-    temp = (data.rho2Ohm * data.chainMeshAmperes * ksFactor(data) * kiFactor(data)) /
+    temp = (data.rho2Ohm * data.currentMeshAmperes * ksFactor(data) * kiFactor(data)) /
            overallConductorLenght(temp2);
 
     return temp;
@@ -250,5 +250,5 @@ double ieee80::overallConductorLenght(const Data &data) {
 // The maximum electrical potential that a ground electrode may attain relative
 // to a distant grounding point assumed to be at the potential of remote earth.
 double ieee80::GPR(const Data &data) {
-    return (groundResistance(data) * data.chainMeshAmperes);
+    return (groundResistance(data) * data.currentMeshAmperes);
 }

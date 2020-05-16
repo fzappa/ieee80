@@ -46,7 +46,7 @@ struct Data {
     double lengthMeters            = 70.0;
     double rho1Ohm                 = 2500.0;  // layer 1 resistivity
     double rho2Ohm                 = 400.0;   // layer 2 resistivity
-    double chainMeshAmperes        = 1200.0;
+    double currentMeshAmperes      = 1200.0;
     unsigned int rods              = 10;
     double resistanceMinMeshOhms   = 2.78;
     double ambientTempCelsius      = 40.0;
