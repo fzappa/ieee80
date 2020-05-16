@@ -1,73 +1,87 @@
+//**********************************************
+//  Library for calculating grounding parameters based on: 
+// Guide for Safety in AC Substation Grounding - IEEE-80
+//
+//  Implemented for Substation discipline in the 
+//  Electrical Engineering course at CEFET / RJ
+//
+//
+//  License: GPLv3
+//  Author: Alan Franco - https://github.com/fzappa/ieee80
+//  Rev.: 05/03/2016 (PT_BR)
+//*********************************************
 #ifndef IEEE_80_HPP
 #define IEEE_80_HPP
 
 namespace ieee80 {
 
-enum enumSolo {
+enum enumSoil {
     Pantano,
-    Lodo,
+    Sludge,
     Humus,
-    AreiaArgilosa,
-    AreiaSilicosa,
-    Brita,
-    Calcareo,
-    Granito,
-    SoloNaoDefinido
+    ClaySand,
+    SiliceousSand,
+    CrushedStone,
+    Limestone,
+    Granite,
+    Default
 };
 
-enum enumCabo {
-    CobreMole,
-    CobreComercial,
-    CobreAco,
-    AluminioAco,
-    Aco1020,
-    AcoInox,
-    Zinco,
-    AcoInox304,
-    CaboNaoDefinido
+// Types os conductor cables - Page 46 - Table 1 - IEEE Std 80-2013
+enum enumCable {
+    CopperSoft,         // Copper, annealed soft-drawn
+    CopperComercial,    // Copper, commercial hard-drawn
+    CopperSteel,        // Copper-clad steel wire
+    AluminumSteel,      // Aluminum-clad steel wire
+    Steel1020,          // Steel, 1020
+    StainlessSteel,     // Stainless-clad steel rod
+    Zinco,              // Zinc-coated steel rod
+    StainlessSteel304,  // Stainless steel, 304
+    NotDefined
 };
 
-struct Dados {
-    double larguraMetros             = 70.0;
-    double comprimentoMetros         = 70.0;
-    double rho1Ohm                   = 2500.0;
-    double rho2Ohm                   = 400.0;
-    double correnteMalhaAmperes      = 1200.0;
-    unsigned int hastes              = 10;
-    double resistenciaMinMalhaOhms   = 2.78;
-    double tempAmbienteCelsius       = 40.0;
-    double diametroMalhaD1Metros     = 0.102;
+// Two-layer stratified soil model
+struct Data {
+    double widthMeters             = 70.0;
+    double lengthMeters         = 70.0;
+    double rho1Ohm                   = 2500.0;  // layer 1 resistivity
+    double rho2Ohm                   = 400.0;   // layer 2 resistivity
+    double chainMeshAmperes      = 1200.0;
+    unsigned int rods              = 10;
+    double resistanceMinMeshOhms   = 2.78;
+    double ambientTempCelsius       = 40.0;
+    double diameterMeshD1Meter     = 0.102;
     double N                         = 0.67;
-    double tempoDeCurtoSegundos      = 0.5;
-    double alturaMalhaMetros         = 0.5;
-    double distanciaCondutoresMetros = 7.0;
-    double tempMaxMalha              = 850.0;
-    unsigned int solo                = Brita;
-    unsigned int cabo                = CobreComercial;
-    double area                      = larguraMetros * comprimentoMetros;
-    double nCondLarg                 = larguraMetros / distanciaCondutoresMetros;
-    double nCondComp                 = comprimentoMetros / distanciaCondutoresMetros;
+    double shortCircuitTimeSeconds      = 0.5;
+    double heightMeshMeters         = 0.5;
+    double spacingConductorsMeters = 7.0;
+    double maximumMeshTemperature              = 850.0;
+    unsigned int soil                = CrushedStone;
+    unsigned int cable                = CopperComercial;
+    double area                      = widthMeters * lengthMeters;
+    double numberConductorsWidth                 = widthMeters / spacingConductorsMeters;
+    double numberConductorsLength                 = lengthMeters / spacingConductorsMeters;
 };
 
-void aparentResistivity(const Dados &, double &, double &,
-                        double &);         // Resistencia aparente da malha
+void aparentResistivity(const Data&, double&, double&,
+                        double&);         // Apparent mesh resistivity
                                            // From IEEE Std 80-2013
-double csCorrectionFactor(const Dados &);  // Page 23 - EQ 27
-double stepVoltage50kg(const Dados &);     // Page 28 - EQ 29
-double touchVoltage50kg(const Dados &);    // Page 29 - EQ 32
-double cableSection(const Dados &);        // Page 42 - EQ 37
-double groundResistance(const Dados &);    // Page 67 - EQ 57
-double touchVoltageMesh(const Dados &);    // Page 94 - EQ 85
-double kmFactor(const Dados &);            // Page 94 - EQ 86
-double kiFactor(const Dados &);            // Page 95 - EQ 94
-double stepVoltageMesh(const Dados &);     // Page 96 - EQ 97
-double ksFactor(const Dados &);            // Page 96 - EQ 99
+double csCorrectionFactor(const Data &);  // Page 23 - EQ 27
+double stepVoltage50kg(const Data &);     // Page 28 - EQ 29
+double touchVoltage50kg(const Data &);    // Page 29 - EQ 32
+double cableSection(const Data &);        // Page 42 - EQ 37
+double groundResistance(const Data &);    // Page 67 - EQ 57
+double touchVoltageMesh(const Data &);    // Page 94 - EQ 85
+double kmFactor(const Data &);            // Page 94 - EQ 86
+double kiFactor(const Data &);            // Page 95 - EQ 94
+double stepVoltageMesh(const Data &);     // Page 96 - EQ 97
+double ksFactor(const Data &);            // Page 96 - EQ 99
 
-double cableDiameter(const Dados &);
-double meshCalc(const Dados &);
-double overallConductorLenght(const Dados &);
+double cableDiameter(const Data &);
+double meshCalc(const Data &);
+double overallConductorLenght(const Data &);
 
-double GPR(const Dados &);
+double GPR(const Data &);
 
 }  // namespace ieee80
 
