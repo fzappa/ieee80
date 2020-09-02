@@ -28,7 +28,7 @@ int main() {
 
     data.cable = ieee80::CopperSoft;
     data.soil  = ieee80::CrushedStone;
-    cout << "Apparent resistance of commercial copper in crushed stone" << endl;
+    cout << "Apparent resistivity of commercial copper in crushed stone" << endl;
     cout << "\t alpha: " << alpha << "\t beta: " << beta << "\t rho_a: " << rho << endl;
     cout << "Cable section [mm2]: " << ieee80::cableSection(data) << endl;
     cout << "Cable diameter [m]: " << ieee80::cableDiameter(data) << endl;
